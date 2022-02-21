@@ -10,14 +10,14 @@ import (
 
 func main() {
 	logger := log.New(os.Stdout, "product-api", log.LstdFlags)
+
 	helloHandler := handlers.NewHello(logger)
+	goodbyeHandler := handlers.NewGoodbye(logger)
+
 	serveMux := http.NewServeMux()
 
 	serveMux.Handle("/", helloHandler)
-
-	http.HandleFunc("/goodbye", func(http.ResponseWriter, *http.Request) {
-		logger.Println("goodbye, world")
-	})
+	serveMux.Handle("/goodbye", goodbyeHandler)
 
 	http.ListenAndServe(":9091", serveMux)
 }
