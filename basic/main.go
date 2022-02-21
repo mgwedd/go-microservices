@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/mgwedd/go-microservices/basic/handlers"
 )
@@ -11,13 +12,21 @@ import (
 func main() {
 	logger := log.New(os.Stdout, "product-api", log.LstdFlags)
 
-	helloHandler := handlers.NewHello(logger)
-	goodbyeHandler := handlers.NewGoodbye(logger)
+	handleHello := handlers.NewHello(logger)
+	handleGoodbye := handlers.NewGoodbye(logger)
 
-	serveMux := http.NewServeMux()
+	mux := http.NewServeMux()
 
-	serveMux.Handle("/", helloHandler)
-	serveMux.Handle("/goodbye", goodbyeHandler)
+	mux.Handle("/", handleHello)
+	mux.Handle("/goodbye", handleGoodbye)
 
-	http.ListenAndServe(":9091", serveMux)
+	server := &http.Server{
+		Addr:         ":9091",
+		Handler:      mux,
+		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
+	}
+
+	server.ListenAndServe()
 }
