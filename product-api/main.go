@@ -8,19 +8,20 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/mgwedd/go-microservices/basic/handlers"
+	"github.com/mgwedd/go-microservices/products-api/handlers"
 )
 
 func main() {
+
+	// env.Parse()
+
 	logger := log.New(os.Stdout, "product-api", log.LstdFlags)
 
-	handleHello := handlers.NewHello(logger)
-	handleGoodbye := handlers.NewGoodbye(logger)
+	handleProducts := handlers.NewProducts(logger)
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/hello", handleHello)
-	mux.Handle("/goodbye", handleGoodbye)
+	mux.Handle("/", handleProducts)
 
 	server := &http.Server{
 		Addr:         ":9091",
