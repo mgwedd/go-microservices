@@ -9,11 +9,14 @@ import (
 	"time"
 
 	"github.com/mgwedd/go-microservices/product-api/handlers"
+	"github.com/nicholasjackson/env"
 )
+
+var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
 
 func main() {
 
-	// env.Parse()
+	env.Parse()
 
 	logger := log.New(os.Stdout, "product-api", log.LstdFlags)
 
@@ -24,7 +27,7 @@ func main() {
 	mux.Handle("/", handleProducts)
 
 	server := &http.Server{
-		Addr:         ":9091",
+		Addr:         *bindAddress,
 		Handler:      mux,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,

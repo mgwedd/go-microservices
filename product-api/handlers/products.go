@@ -26,3 +26,11 @@ func (products *Product) ServeHTTP(responseWriter http.ResponseWriter, request *
 		http.Error(responseWriter, "Unable to marshal JSON", http.StatusInternalServerError)
 	}
 }
+
+func (products *Products) getProducts(responseWriter http.ResponseWriter, request *http.Request) {
+	productsList := data.GetProducts()
+	err := productsList.ToJson(responseWriter)
+	if err != nil {
+		http.Error(responseWriter, "Unable to marshal JSON", http.StatusInternalServerError)
+	}
+}
