@@ -39,6 +39,15 @@ func (products *Products) ServeHTTP(responseWriter http.ResponseWriter, request 
 		return
 	}
 
+	if request.Method == http.MethodDelete {
+		id, err := ParseIDParam(request)
+		if err != nil {
+			http.Error(responseWriter, "invalid product ID", http.StatusBadRequest)
+		}
+		products.deleteProduct(id, responseWriter, request)
+		return
+	}
+
 	responseWriter.WriteHeader(http.StatusMethodNotAllowed)
 }
 
@@ -109,5 +118,21 @@ func (product *Products) updateProduct(id int, responseWriter http.ResponseWrite
 	}
 
 	product.logger.Printf("Product updated: %#v", prod)
+}
 
+func (product *Products) deleteProduct(id int, responseWriter http.ResponseWriter, request *http.Request) {
+	product.logger.Println("Handle DELETE product")
+
+	prod := &data.Product{}
+
+	updateErr := data.DeleteProduct(id, prod)
+	if updateErr == data.ErrProductNotFound {
+		http.Error(responseWriter, "Product not found", http.StatusNotFound)
+	}
+
+	if updateErr != nil {
+		http.Error(responseWriter, "Cannot delete product", http.StatusBadRequest)
+	}
+
+	product.logger.Printf("Product deleted: %#v", prod)
 }

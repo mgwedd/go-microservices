@@ -31,7 +31,8 @@ func (products *Products) ToJson(writer io.Writer) error {
 }
 
 func GetProducts() Products {
-	return productList
+	undeletedProducts := FilterProducts(productList)
+	return undeletedProducts
 }
 
 func AddProduct(product *Product) {
@@ -46,6 +47,18 @@ func UpdateProduct(id int, product *Product) error {
 	}
 
 	product.ID = id
+	productList[posIdx] = product
+	return nil
+}
+
+func DeleteProduct(id int, product *Product) error {
+	_, posIdx, err := FindProduct(id)
+	if err != nil {
+		return err
+	}
+
+	product.ID = id
+	product.DeletedOn = time.Now().UTC().String()
 	productList[posIdx] = product
 	return nil
 }
@@ -65,10 +78,25 @@ func GetNextID() int {
 	return prodList.ID + 1
 }
 
+func FilterProducts(prodList Products) Products {
+	test := func(prod *Product) bool { return prod.DeletedOn == "" }
+	activeProducts := filter(prodList, test)
+	return activeProducts
+}
+
+func filter(prodList Products, test func(*Product) bool) (activeProducts Products) {
+	for _, prod := range prodList {
+		if test(prod) {
+			activeProducts = append(activeProducts, prod)
+		}
+	}
+	return activeProducts
+}
+
 var ErrProductNotFound = fmt.Errorf("Product not found")
 
 var productList = []*Product{
-	&Product{
+	{
 		ID:          1,
 		Name:        "Latte",
 		Description: "Frothy milky coffee",
@@ -77,7 +105,7 @@ var productList = []*Product{
 		CreatedOn:   time.Now().UTC().String(),
 		UpdatedOn:   time.Now().UTC().String(),
 	},
-	&Product{
+	{
 		ID:          2,
 		Name:        "Espresso",
 		Description: "Short and strong coffee without milk",
