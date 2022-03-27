@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/mgwedd/go-microservices/product-api/handlers"
 	"github.com/nicholasjackson/env"
 )
@@ -22,13 +23,25 @@ func main() {
 
 	handleProducts := handlers.NewProducts(logger)
 
-	mux := http.NewServeMux()
+	router := mux.NewRouter()
 
-	mux.Handle("/", handleProducts)
+	getRouter := router.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/api/products", handleProducts.GetProducts)
+
+	postRouter := router.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/api/products", handleProducts.AddProduct)
+	postRouter.Use(handleProducts.ValidateRequest)
+
+	putRouter := router.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/api/products/{id:[0-9]+}", handleProducts.UpdateProduct)
+	putRouter.Use(handleProducts.ValidateRequest)
+
+	deleteRouter := router.Methods(http.MethodDelete).Subrouter()
+	deleteRouter.HandleFunc("/api/products/{id:[0-9]+}", handleProducts.DeleteProduct)
 
 	server := &http.Server{
 		Addr:         *bindAddress,
-		Handler:      mux,
+		Handler:      router,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
