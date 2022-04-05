@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -92,13 +93,21 @@ func (product *Products) DeleteProduct(responseWriter http.ResponseWriter, reque
 func (products Products) ValidateRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
 
-		products.logger.Println("[DEBUG] validing request")
+		products.logger.Println("[DEBUG] validating request")
 		prod := data.Product{}
 
 		parseErr := prod.FromJSON(request.Body)
 		if parseErr != nil {
 			products.logger.Println("[ERROR] deserializing product during request validation", parseErr)
 			http.Error(responseWriter, "Unable to unmarshal JSON", http.StatusBadRequest)
+			return
+		}
+
+		// Validate the product
+		err := prod.Validate()
+		if err != nil {
+			products.logger.Println("[ERROR] Product request validation failed", parseErr)
+			http.Error(responseWriter, fmt.Sprintf("Product validation failed: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
 
